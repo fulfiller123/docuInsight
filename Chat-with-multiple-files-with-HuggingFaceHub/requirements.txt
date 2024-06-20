@@ -7,3 +7,5 @@ chromadb
 langchainhub
 langchain-huggingface
 faiss-cpu 
+openai
+tiktoken
