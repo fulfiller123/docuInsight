@@ -53,7 +53,6 @@ header {
     padding: 0.5rem;
     background-color: #f1f1f1;
     border-radius: 50px;
-    margin-top: 1rem;
 }
 .chat-input input {
     flex-grow: 1;
@@ -247,22 +246,28 @@ def get_conversation_chain(vectorstore):
 
 def handle_userinput(user_question):
     if st.session_state.conversation:
-        response = st.session_state.conversation({'question': user_question})
-        st.session_state.chat_history.extend(response['chat_history'])
+        if not st.session_state.chat_history or user_question != st.session_state.chat_history[-1]['content']:
+            response = st.session_state.conversation({'question': user_question})
+            st.session_state.chat_history.append({'content': user_question, 'sender': 'user'})
+            
+            # Ensure response is appended only once
+            if response and response.get('answer'):
+                st.session_state.chat_history.append({'content': response['answer'], 'sender': 'bot'})
 
-        for i, message in enumerate(st.session_state.chat_history):
-            if i % 2 == 0:
-                st.markdown(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-            else:
-                st.markdown(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-                if "dataframe" in message.content:
-                    df = pd.read_json(message.content.replace("dataframe:", "").strip())
-                    st.table(df)
-                elif "chart" in message.content:
-                    chart_data = pd.read_json(message.content.replace("chart:", "").strip())
-                    st.line_chart(chart_data)
-    else:
-        st.error("Please select a folder and upload files before asking questions.")
+    # Display chat history
+    st.markdown('<div class="chat-container"><div id="chat-history">', unsafe_allow_html=True)
+    for message in st.session_state.chat_history:
+        if message['sender'] == 'user':
+            st.markdown(user_template.replace("{{MSG}}", message['content']), unsafe_allow_html=True)
+        else:
+            st.markdown(bot_template.replace("{{MSG}}", message['content']), unsafe_allow_html=True)
+            if "dataframe" in message['content']:
+                df = pd.read_json(message['content'].replace("dataframe:", "").strip())
+                st.table(df)
+            elif "chart" in message['content']:
+                chart_data = pd.read_json(message['content'].replace("chart:", "").strip())
+                st.line_chart(chart_data)
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
 def delete_file(folder, file):
     os.remove(os.path.join(folder, file))
@@ -320,11 +325,11 @@ def main():
     """, unsafe_allow_html=True)
 
     if st.session_state.chat_history:
-        for i, message in enumerate(st.session_state.chat_history):
-            if i % 2 == 0:
-                st.markdown(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+        for message in st.session_state.chat_history:
+            if message['sender'] == 'user':
+                st.markdown(user_template.replace("{{MSG}}", message['content']), unsafe_allow_html=True)
             else:
-                st.markdown(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+                st.markdown(bot_template.replace("{{MSG}}", message['content']), unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
