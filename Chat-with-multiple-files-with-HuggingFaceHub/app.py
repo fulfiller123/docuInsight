@@ -6,8 +6,8 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import OpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.llms import OpenAI
 import docx  # Library to handle .docx files
 import moviepy.editor as mp  # Library to handle video files
 import openai
@@ -312,7 +312,7 @@ def main():
     with st.form(key='user_input_form', clear_on_submit=True):
         user_input_col, submit_button_col = st.columns([4, 1])
         with user_input_col:
-            user_question = st.text_input("", key='user_input', placeholder="Type your message here...", label_visibility="collapsed")
+            user_question = st.text_input("Your message:", key='user_input', placeholder="Type your message here...", label_visibility="collapsed")
         with submit_button_col:
             submit_button = st.form_submit_button(label="Submit", use_container_width=True)
 
